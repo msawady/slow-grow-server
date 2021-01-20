@@ -1,4 +1,4 @@
-name:= "slow-grow-server"
+name := "slow-grow-server"
 
 version := "0.0.1"
 
@@ -17,12 +17,19 @@ lazy val baseSettings = Seq(
   scalafmtOnCompile := true
 )
 
-
-
 lazy val root = (project in file("."))
+  .settings(baseSettings)
+  .aggregate(domainData, application)
+
+lazy val domainData = (project in file("domain-data"))
   .settings(baseSettings)
   .settings(
     libraryDependencies += Dependencies.scalaTest % Test
   )
 
-// See https://www.scala-sbt.org/1.x/docs/Using-Sonatype.html for instructions on how to publish to Sonatype.
+lazy val application = (project in file("application"))
+  .settings(baseSettings)
+  .settings(
+    libraryDependencies += Dependencies.scalaTest % Test
+  )
+  .dependsOn(domainData)
