@@ -14,7 +14,8 @@ lazy val baseSettings = Seq(
     "-Xlint"
   ),
   publishArtifact in packageDoc := false,
-  scalafmtOnCompile := true
+  scalafmtOnCompile := true,
+  libraryDependencies += Dependencies.scalaTest % Test
 )
 
 lazy val root = (project in file("."))
@@ -23,13 +24,14 @@ lazy val root = (project in file("."))
 
 lazy val domainData = (project in file("domain-data"))
   .settings(baseSettings)
-  .settings(
-    libraryDependencies += Dependencies.scalaTest % Test
-  )
 
 lazy val application = (project in file("application"))
   .settings(baseSettings)
-  .settings(
-    libraryDependencies += Dependencies.scalaTest % Test
-  )
   .dependsOn(domainData)
+
+lazy val infra = (project in file("infra"))
+  .settings(baseSettings)
+  .settings(
+    libraryDependencies ++= Dependencies.infraDependencies
+  )
+  .dependsOn(application)
