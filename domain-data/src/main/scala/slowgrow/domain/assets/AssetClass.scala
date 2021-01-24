@@ -4,5 +4,5 @@ sealed trait AssetClass
 
 object AssetClass {
 
-  case object Stock extends AssetClass
+  case object USEquity extends AssetClass
 }
