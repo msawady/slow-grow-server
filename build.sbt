@@ -15,7 +15,8 @@ lazy val baseSettings = Seq(
   ),
   publishArtifact in packageDoc := false,
   scalafmtOnCompile := true,
-  libraryDependencies += Dependencies.scalaTest % Test
+  libraryDependencies += Dependencies.scalaTest % Test,
+  libraryDependencies ++= Dependencies.baseDependencies
 )
 
 lazy val root = (project in file("."))
@@ -27,6 +28,9 @@ lazy val domainData = (project in file("domain-data"))
 
 lazy val application = (project in file("application"))
   .settings(baseSettings)
+  .settings(
+    libraryDependencies ++= Dependencies.applicationDependencies
+  )
   .dependsOn(domainData)
 
 lazy val infra = (project in file("infra"))

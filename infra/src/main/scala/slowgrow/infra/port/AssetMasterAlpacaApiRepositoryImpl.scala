@@ -9,8 +9,8 @@ import slowgrow.domain.assets.{Asset, AssetClass, AssetSym}
 
 import scala.jdk.CollectionConverters._
 
+class AssetMasterAlpacaApiRepositoryImpl(alpacaApi: AlpacaAPI) extends AssetMasterRepository {
 
-class AssetMasterAlpacaApiRepositoryImpl(alpacaApi: AlpacaAPI) extends AssetMasterRepository[IO] {
   override def loadAll(): IO[List[Asset]] = {
     IO.delay(
       // alpaca seems doesn't provide assetClass other than "us_equity"
@@ -23,7 +23,7 @@ class AssetMasterAlpacaApiRepositoryImpl(alpacaApi: AlpacaAPI) extends AssetMast
       symbol = AssetSym(alpacaAsset.getSymbol),
       assetClass = Option.when(alpacaAsset.getClass_.nonEmpty)(alpacaAsset.getClass_ match {
         case "us_equity" => AssetClass.USEquity
-        case _ => throw new IllegalArgumentException(s"unsupported asset class: ${alpacaAsset.getClass_}")
+        case _           => throw new IllegalArgumentException(s"unsupported asset class: ${alpacaAsset.getClass_}")
       })
     )
   }

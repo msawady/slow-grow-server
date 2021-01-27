@@ -1,8 +1,9 @@
 package slowgrow.application.port
 
+import cats.effect.IO
 import slowgrow.domain.assets.Asset
 
-trait AssetMasterRepository[F[_]] {
+trait AssetMasterRepository {
 
-  def loadAll(): F[List[Asset]]
+  def loadAll(): IO[List[Asset]]
 }
