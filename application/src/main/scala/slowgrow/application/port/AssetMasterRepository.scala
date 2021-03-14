@@ -5,5 +5,5 @@ import slowgrow.domain.assets.Asset
 
 trait AssetMasterRepository {
 
-  def loadAll(): IO[List[Asset]]
+  def loadAll(): IO[Either[DataAccessException, List[Asset]]]
 }

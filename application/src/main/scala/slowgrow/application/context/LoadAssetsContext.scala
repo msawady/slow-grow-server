@@ -1,26 +1,30 @@
 package slowgrow.application.context
 
 import cats.effect.IO
+import slowgrow.application.context.support.EitherTSyntax
 import slowgrow.application.port.{AssetMasterRepository, AssetRepository}
 import wvlet.log.LogSupport
 
 class LoadAssetsContext(
     assetMasterRepository: AssetMasterRepository,
     assetRepository: AssetRepository
-) extends LogSupport {
+) extends LogSupport
+    with EitherTSyntax {
 
-  def loadAsset(): IO[Unit] = {
+  def loadAsset(): IO[Either[Throwable, Unit]] = {
 
-    for {
-      data <- assetMasterRepository.loadAll()
-      persisted <- assetRepository.findAll()
+    val task = for {
+      data <- assetMasterRepository.loadAll().asT
+      persisted <- assetRepository.findAll().asT
       newData = data.toSet -- persisted
       _ = info(s"will persisting ${newData.size}")
       _ = info(s"""
       symbols:
        ${newData.map(_.symbol.value).mkString("\n")}
        """)
-      _ <- assetRepository.save(newData.toList)
+      _ <- assetRepository.save(newData.toList).asT
     } yield ()
+
+    task.value
   }
 }
