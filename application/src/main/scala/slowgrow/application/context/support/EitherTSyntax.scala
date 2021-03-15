@@ -16,6 +16,14 @@ trait EitherTSyntax {
   implicit class RichDataAccessEither[R](self: IO[Either[DataAccessException, R]]) {
 
     def handle[LL](f: DataAccessException => LL): EitherT[IO, LL, R] = EitherT.apply(self).leftMap(f)
+
+    def handle2[Context](f: DataAccessException => _ <: ContextError[Context]): EitherT[IO, ContextError[Context], R] =
+      EitherT.apply(self).leftMap(f)
+
+    def toRightT[Context]: EitherT[IO, ContextError[Context], R] = EitherT.right(self.flatMap {
+      case Right(v) => IO.delay(v)
+      case Left(e)  => throw GenericContextError[Context](e)
+    })
   }
 
   implicit class RichDataCreateEither[R](self: IO[Either[DataCreateException, R]]) {

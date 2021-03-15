@@ -5,8 +5,7 @@ import slowgrow.domain.values.InvestorId
 case class Portfolio(
     id: Portfolio.Id,
     investorId: InvestorId,
-    name: Portfolio.Name,
-    positions: Seq[Position]
+    name: Portfolio.Name
 )
 
 object Portfolio {
