@@ -13,6 +13,11 @@ case class Amount(value: BigDecimal, currency: Currency = Currency.USD) {
     )
     Qty(value / price.value)
   }
+
+  def /(qty: Qty): Price = {
+    Price(value / qty.value, this.currency)
+  }
+
 }
 
 object Amount {

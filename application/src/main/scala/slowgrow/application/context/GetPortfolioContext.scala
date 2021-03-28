@@ -7,7 +7,7 @@ import slowgrow.application.context.support.EitherTSyntax
 import slowgrow.application.port.{DataAccessException, PortfolioRepository, PositionRepository}
 import slowgrow.domain.assets.AssetSym
 import slowgrow.domain.portfolio.{Portfolio, Position, ProfitAndLoss, Side}
-import slowgrow.domain.values.{InvestorId, Price, Qty}
+import slowgrow.domain.values.{Amount, InvestorId, Price, Qty}
 import wvlet.log.LogSupport
 
 class GetPortfolioContext(
@@ -58,12 +58,45 @@ object GetPortfolioContext {
       currentQty: Qty,
       averagePrice: Price,
       marketPrice: Price,
+      bookAmount: Amount,
+      marketAmount: Amount,
       unrealizedPnl: ProfitAndLoss,
       positions: Seq[Position.Id]
   )
 
   implicit class SummarizingPositions(self: Seq[Position]) {
-    def summarize(): Seq[SummarizedPosition] = ???
+
+    def summarize(): Seq[SummarizedPosition] = {
+      self.groupBy(x => (x.symbol, x.side)).map {
+        case ((sym, side), xs) =>
+          val currentQty = Qty(xs.map(_.currentQty.value).sum)
+          val bookAmount = Amount(xs.map(x => (x.currentQty * x.averagePrice).value).sum)
+          val marketAmount = Amount(xs.map(x => (x.currentQty * x.marketPrice).value).sum)
+
+          SummarizedPosition(
+            symbol = sym,
+            side = side,
+            currentQty = currentQty,
+            averagePrice = bookAmount / currentQty,
+            marketPrice = xs.head.marketPrice,
+            bookAmount = bookAmount,
+            marketAmount = marketAmount,
+            unrealizedPnl = marketAmount - bookAmount,
+            positions = xs.map(_.positionId)
+          )
+      }.toSeq
+    }
+  }
+
+  implicit class RichAmount(self: Amount) {
+
+    def -(amount: Amount): ProfitAndLoss = {
+      require(
+        self.currency == amount.currency,
+        s"Currency must be Same. LeftSideCcy: ${self.currency}, RightSideCcy: ${amount.currency}"
+      )
+      ProfitAndLoss(self.value - amount.value)
+    }
   }
 
 }
