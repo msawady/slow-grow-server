@@ -2,7 +2,7 @@ import sbt._
 
 object Dependencies {
 
-  val scalaVersion = "2.13.4"
+  val scalaVersion = "2.13.5"
   lazy val scalaTest = "org.scalatest" %% "scalatest" % "3.2.2"
 
   lazy val baseDependencies = Seq(

@@ -1,7 +1,9 @@
 package slowgrow.application.context
 
+import cats.data.EitherT
 import cats.effect.IO
-import slowgrow.application.context.support.{ContextError, EitherTSyntax}
+import slowgrow.application.context.GetPortfolioContext.ContextError.{TargetPortfolioNotFoundException, Unexpected}
+import slowgrow.application.context.support.EitherTSyntax
 import slowgrow.application.port.{DataAccessException, PortfolioRepository, PositionRepository}
 import slowgrow.domain.assets.AssetSym
 import slowgrow.domain.portfolio.{Portfolio, Position, ProfitAndLoss, Side}
@@ -19,13 +21,13 @@ class GetPortfolioContext(
   def getPortfolio(
       investorId: InvestorId,
       portfolioName: Portfolio.Name
-  ): IO[Either[ContextError[GetPortfolioContext], Result]] = {
+  ): IO[Either[ContextError, Result]] = {
 
     val task = for {
-      portfolio <- portfolioRepository.findBy(investorId, portfolioName).handle2[GetPortfolioContext](e =>
-        TargetPortfolioNotFoundException(portfolioName, e)
+      portfolio <- portfolioRepository.findBy(investorId, portfolioName).handle[ContextError](e =>
+        new TargetPortfolioNotFoundException(portfolioName, e)
       )
-      positions <- positionRepository.listOpenBy(portfolio.id).toRightT
+      positions <- EitherT(positionRepository.listOpenBy(portfolio.id)).leftMap[ContextError](e => new Unexpected(e))
 
     } yield Result(portfolio, summary = positions.summarize())
 
@@ -34,6 +36,16 @@ class GetPortfolioContext(
 }
 
 object GetPortfolioContext {
+
+  sealed trait ContextError
+
+  object ContextError {
+    final class Unexpected(e: Throwable) extends RuntimeException(e) with ContextError
+
+    final class TargetPortfolioNotFoundException(portfolioName: Portfolio.Name, e: DataAccessException)
+        extends RuntimeException(s"Failed to find Portfolio: $portfolioName.", e)
+        with ContextError
+  }
 
   case class Result(
       portfolio: Portfolio,
@@ -53,9 +65,5 @@ object GetPortfolioContext {
   implicit class SummarizingPositions(self: Seq[Position]) {
     def summarize(): Seq[SummarizedPosition] = ???
   }
-
-  case class TargetPortfolioNotFoundException(portfolioName: Portfolio.Name, e: DataAccessException)
-      extends RuntimeException(s"Failed to find Portfolio: $portfolioName.", e)
-      with ContextError[GetPortfolioContext]
 
 }
