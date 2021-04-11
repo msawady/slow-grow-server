@@ -25,9 +25,9 @@ class AssetMasterAlpacaApiRepositoryImpl(alpacaApi: AlpacaAPI) extends AssetMast
   def toDomainAsset(alpacaAsset: AlpacaAsset): Asset = {
     Asset(
       symbol = AssetSym(alpacaAsset.getSymbol),
-      assetClass = Option.when(alpacaAsset.getClass_.nonEmpty)(alpacaAsset.getClass match {
+      assetClass = Option.when(alpacaAsset.getClass_.nonEmpty)(alpacaAsset.getClass_ match {
         case "us_equity" => AssetClass.USEquity
-        case _           => throw new IllegalArgumentException(s"unsupported asset class: ${alpacaAsset.getClass}")
+        case _           => throw new IllegalArgumentException(s"unsupported asset class: ${alpacaAsset.getClass_}")
       })
     )
   }
