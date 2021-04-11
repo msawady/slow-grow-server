@@ -7,3 +7,10 @@ trait AssetMasterRepository {
 
   def loadAll(): IO[Either[DataAccessException, List[Asset]]]
 }
+
+object AssetMasterRepository {
+
+  final class ExternalDataSourceAccessException(e: Throwable)
+      extends RuntimeException(e: Throwable)
+      with DataAccessException
+}
