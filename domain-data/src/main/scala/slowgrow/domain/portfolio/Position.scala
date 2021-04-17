@@ -17,6 +17,8 @@ case class Position(
     marketPrice: Price,
     unrealizedPnl: ProfitAndLoss,
     realizedPnl: ProfitAndLoss,
+    openDate: ZonedDateTime,
+    closeDate: Option[ZonedDateTime],
     evaluatedAt: ZonedDateTime
 )
 
