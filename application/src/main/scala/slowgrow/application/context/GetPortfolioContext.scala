@@ -4,15 +4,15 @@ import cats.data.EitherT
 import cats.effect.IO
 import slowgrow.application.context.GetPortfolioContext.ContextError.{TargetPortfolioNotFoundException, Unexpected}
 import slowgrow.application.context.support.EitherTSyntax
-import slowgrow.application.port.{DataAccessException, PortfolioRepository, PositionRepository}
+import slowgrow.application.port.{DataAccessException, EvaluatedPositionRepository, PortfolioRepository}
 import slowgrow.domain.assets.AssetSym
-import slowgrow.domain.portfolio.{Portfolio, Position, ProfitAndLoss, Side}
+import slowgrow.domain.portfolio.{EvaluatedPosition, Portfolio, Position, ProfitAndLoss, Side}
 import slowgrow.domain.values.{Amount, InvestorId, Price, Qty}
 import wvlet.log.LogSupport
 
 class GetPortfolioContext(
     portfolioRepository: PortfolioRepository,
-    positionRepository: PositionRepository
+    evaluatedPositionRepository: EvaluatedPositionRepository
 ) extends LogSupport
     with EitherTSyntax {
 
@@ -27,7 +27,9 @@ class GetPortfolioContext(
       portfolio <- portfolioRepository.findBy(investorId, portfolioName).handle[ContextError](e =>
         new TargetPortfolioNotFoundException(portfolioName, e)
       )
-      positions <- EitherT(positionRepository.listOpenBy(portfolio.id)).leftMap[ContextError](e => new Unexpected(e))
+      positions <- EitherT(evaluatedPositionRepository.listOpenByPortfolioId(portfolio.id)).leftMap[ContextError](e =>
+        new Unexpected(e)
+      )
 
     } yield Result(portfolio, summary = positions.summarize())
 
@@ -64,7 +66,7 @@ object GetPortfolioContext {
       positions: Seq[Position.Id]
   )
 
-  implicit class SummarizingPositions(self: Seq[Position]) {
+  implicit class SummarizingPositions(self: Seq[EvaluatedPosition]) {
 
     def summarize(): Seq[SummarizedPosition] = {
       self.groupBy(x => (x.symbol, x.side)).map {

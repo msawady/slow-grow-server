@@ -5,7 +5,7 @@ import slowgrow.domain.values.{InvestorId, Price, Qty}
 
 import java.time.ZonedDateTime
 
-case class Position(
+case class EvaluatedPosition(
     positionId: Position.Id,
     investorId: InvestorId,
     portfolioId: Portfolio.Id,
@@ -13,13 +13,11 @@ case class Position(
     side: Side,
     initialQty: Qty,
     currentQty: Qty,
-    price: Price,
+    averagePrice: Price,
+    marketPrice: Price,
+    unrealizedPnl: ProfitAndLoss,
+    realizedPnl: ProfitAndLoss,
     openDate: ZonedDateTime,
-    closeDate: Option[ZonedDateTime]
+    closeDate: Option[ZonedDateTime],
+    evaluatedAt: ZonedDateTime
 )
-
-object Position {
-
-  case class Id(value: String)
-
-}
